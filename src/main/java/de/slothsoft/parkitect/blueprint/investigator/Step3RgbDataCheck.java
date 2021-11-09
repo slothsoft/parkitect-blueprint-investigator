@@ -6,6 +6,10 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+/**
+ * This class prints the data stored in the last the bit of RGB values.
+ */
+
 public class Step3RgbDataCheck {
 
 	public static void main(String[] args) throws IOException {

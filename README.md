@@ -6,6 +6,8 @@ It started because I misspelled "castle" as "castke".
 - [Step 1 - File Search](#step-1---file-search) 
 - [Step 2 - Analyzing the PNG Chunks](#step-2---analyzing-the-png-chunks) 
 - [Step 3 - Investigating RGB Bits](#step-3---investigating-rgb-bits) 
+- [Step 4 - Finding the File Name](#step-4---finding-the-file-name) 
+- [Step 5 - Using Brute Force](#step-5---using-brute-force)  
 
 
 ## Step 1 - File Search
@@ -140,7 +142,46 @@ bits (instead of last bit) is used, the order of the bits is incorrect or... the
 stored in an ASCII representation.
 
 
+# Step 4 - Finding the File Name
 
+<i>See [Step4OneBitSearchCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step4OneBitSearchCheck.java), [Step4TwoBitSearchCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step4TwoBitSearchCheck.java)</i>
+
+
+At this point it's clear the only things to do to figure this puzzle out is to
+
+1. ask the persons that created the format
+1. try to brute force my way in
+
+Brute forcing could work via the assumption that the blueprint name is stored somewhere in
+the image (which can easily be proven by copying or renaming the file - new copy has the same name as the
+original, even though its file name differs).
+
+So I created two classes that search for bytes with the same amount of ones as in the characters
+of the blueprint name. 
+
+No matter if I use the last bit ([Step4OneBitSearchCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step4OneBitSearchCheck.java)) 
+or the last two bits ([Step4TwoBitSearchCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step4TwoBitSearchCheck.java)),
+the blueprint name cannot be found.
+
+Even if I fiddle with the order of the bits (not RGBA as in the Tumblr post, but ARGB or even
+more outlandish combinations), I can't find the name. 
+
+Maybe the encoding of the name is the problem...?
+
+
+
+# Step 5 - Using Brute Force
+
+So which encoding does the blueprints use? Hard to say. They could use some custom format, 
+which is unlikely if a lot of characters are supported. So back in the game I tried to figure out
+if symbols and umlauts are allowed. The result:
+
+![water-tower-data](no-blueprint/content-manager-umlauts.png)
+
+So it's not ASCII. But it is bound by the actual file name, because by default file name and blueprint 
+name are the same. So which format do OS use?
+
+Windows seems to use UTF-16, Mac and Linux UTF-8, so checking for UTF-8 should work better.
 
     
     

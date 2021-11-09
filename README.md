@@ -172,6 +172,8 @@ Maybe the encoding of the name is the problem...?
 
 # Step 5 - Using Brute Force
 
+<i>See [Step5BruteForce](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step5BruteForce.java)</i>
+
 So which encoding does the blueprints use? Hard to say. They could use some custom format, 
 which is unlikely if a lot of characters are supported. So back in the game I tried to figure out
 if symbols and umlauts are allowed. The result:
@@ -182,6 +184,72 @@ So it's not ASCII. But it is bound by the actual file name, because by default f
 name are the same. So which format do OS use?
 
 Windows seems to use UTF-16, Mac and Linux UTF-8, so checking for UTF-8 should work better.
+
+Second question: are one or two bits used for storing data? To figure that out I checked the color 
+values of the top left pixels of the castle blueprint, which should be the same color. The values are:
+
+(It's RGBA)
+
+415B90FE 415A91FE 415A91FF 405A91FE 415A90FE
+415B90FF 405B91FF 415A91FE 405A91FF 415A91FF
+405B90FF 405B91FF 415A91FF 415B90FE 405B91FF
+
+So the red of the "same" color is 41 or 40, green is 5A or 5B, blue is 90 or 91 and alpha is FF or FE. 
+All of these only differ by one bit, so it's probable only the last bit of each color component is used.
+
+With these two assumption we can build a brute force algorithm that tries all combinations of these 
+four bits to try to find our UTF-8 encoded blueprint name.
+
+Oh, and now we have data to compare against - the above bits should be:
+
+```
+1100 1010 1011 0010 1000
+1101 0111 1010 0011 1011
+0101 0111 1010 1100 0111
+```
+
+...or...
+
+```
+C A B 2 8
+D 7 A 3 B
+5 7 A C 7
+```
+
+
+## Result
+
+Since I could not compare the bytes against the expected data, I realized I had accidentally switched x and y while building the bytes.
+
+But neither the incorrect nor the correct version produced the bytes of the blueprint names in [Step5BruteForce](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step5BruteForce.java).
+
+So that was a bust, however I realized the first 3 bytes of the blueprints were always the same:
+
+```
+1100 1010
+1011 0010
+1000 0000
+```
+
+Which means they could be a tag (like NAME followed by the bytes for the name) or maybe some marker bytes to let the decoder know it's a Parkitect 
+blueprint file.
+ 
+
+
+# Step 6 - Cracking the Code
+
+So what could this mean?
+
+```
+1100 1010
+1011 0010
+1000 0000
+```
+
+I checked the [UTF-8 table](https://www.utf8-chartable.de/) and found something intriguing - P is 50 which is 110010 binary, the first 
+6 bits of the code. C is 43 / 101011, 001010 is a control character without fix meaning and 000000 is zero. PC could stand for Parkitect, 
+or it could be a random coincident. But maybe the reason why I couldn't find the blueprint name in the color component's bit data
+is because it is not neatly byte separated.
 
     
     

@@ -29,8 +29,8 @@ public class Step4OneBitSearchCheck {
 		System.out.println(searchString.chars().mapToObj(Integer::toBinaryString)
 				.map(s -> String.format("%8s", s).replace(' ', '0')).collect(Collectors.joining("\t")));
 
-		for (int x = 0; x < image.getWidth(); x++) {
-			for (int y = 0; y < image.getHeight(); y++) {
+		for (int y = 0; y < image.getHeight(); y++) {
+			for (int x = 0; x < image.getWidth(); x++) {
 				final int pixel = image.getRGB(x, y);
 
 				final String currentBits = Arrays.stream(PIXEL_POSITIONS).mapToObj(pos -> getBit(pixel, pos))

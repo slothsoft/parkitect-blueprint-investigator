@@ -21,8 +21,8 @@ public class Step3RgbDataCheck {
 		int index = 0;
 		String lastBits = null;
 
-		for (int x = 0; x < image.getWidth(); x++) {
-			for (int y = 0; y < image.getHeight(); y++) {
+		for (int y = 0; y < image.getHeight(); y++) {
+			for (int x = 0; x < image.getWidth(); x++) {
 				final int pixel = image.getRGB(x, y);
 
 				// bit order: red green blue alpha

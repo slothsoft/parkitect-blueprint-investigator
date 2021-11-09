@@ -19,7 +19,7 @@ public class Step4TwoBitSearchCheck {
 
 	public static void main(String[] args) throws IOException {
 		final File file = new File("blueprints/water-tower-alone.png");
-		final String searchString = "water-t";
+		final String searchString = "water-tow";
 
 		final BufferedImage image = ImageIO.read(file);
 		final String[] gameBytes = new String[image.getWidth() * image.getHeight()];
@@ -28,8 +28,8 @@ public class Step4TwoBitSearchCheck {
 		System.out.println(searchString.chars().mapToObj(Integer::toBinaryString)
 				.map(s -> String.format("%8s", s).replace(' ', '0')).collect(Collectors.joining("\t")));
 
-		for (int x = 0; x < image.getWidth(); x++) {
-			for (int y = 0; y < image.getHeight(); y++) {
+		for (int y = 0; y < image.getHeight(); y++) {
+			for (int x = 0; x < image.getWidth(); x++) {
 				final int pixel = image.getRGB(x, y);
 
 				final String currentBits = Arrays.stream(PIXEL_POSITIONS).mapToObj(pos -> getBit(pixel, pos))

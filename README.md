@@ -136,7 +136,7 @@ is:
 
 ...which looks a lot less like game data. 
 
-However, if I search the blue print file's data for the blueprint name, which I know 
+However, if I search the blueprint file's data for the blueprint's name, which I know 
 is there, then nothing is found. So either my algorithm is wrong, the last two 
 bits (instead of last bit) is used, the order of the bits is incorrect or... the name is not 
 stored in an ASCII representation.
@@ -153,7 +153,7 @@ At this point it's clear the only things to do to figure this puzzle out is to
 1. try to brute force my way in
 
 Brute forcing could work via the assumption that the blueprint name is stored somewhere in
-the image (which can easily be proven by copying or renaming the file - new copy has the same name as the
+the image (which can easily be proven by copying or renaming the file - the new copy has the same name as the
 original, even though its file name differs).
 
 So I created two classes that search for bytes with the same amount of ones as in the characters
@@ -190,9 +190,11 @@ values of the top left pixels of the castle blueprint, which should be the same 
 
 (It's RGBA)
 
+```
 415B90FE 415A91FE 415A91FF 405A91FE 415A90FE
 415B90FF 405B91FF 415A91FE 405A91FF 415A91FF
 405B90FF 405B91FF 415A91FF 415B90FE 405B91FF
+```
 
 So the red of the "same" color is 41 or 40, green is 5A or 5B, blue is 90 or 91 and alpha is FF or FE. 
 All of these only differ by one bit, so it's probable only the last bit of each color component is used.
@@ -223,7 +225,8 @@ Since I could not compare the bytes against the expected data, I realized I had 
 
 But neither the incorrect nor the correct version produced the bytes of the blueprint names in [Step5BruteForce](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step5BruteForce.java).
 
-So that was a bust, however I realized the first 3 bytes of the blueprints were always the same:
+So that was a bust, however using the RGBA bits I realized the first 3 bytes of the blueprints were always the same (that is of course true for every
+combination of bits, not just RGBA):
 
 ```
 1100 1010
@@ -238,6 +241,8 @@ blueprint file.
 
 # Step 6 - Cracking the Code
 
+<i>See [Step6PrintData](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step6PrintData.java)</i>
+
 So what could this mean?
 
 ```
@@ -251,5 +256,17 @@ I checked the [UTF-8 table](https://www.utf8-chartable.de/) and found something 
 or it could be a random coincident. But maybe the reason why I couldn't find the blueprint name in the color component's bit data
 is because it is not neatly byte separated.
 
-    
-    
+So let's approach this from the other direction, now that we are confident which order of bytes to use. What data is encoded in these blueprints?
+
+Let's take a look at what the game displays of the blueprint. For that I took a blueprint of my entire park: 
+
+![water-tower-data](no-blueprint/entire-park.png)
+
+The name, obviously, is in there; we've been searching for it for a while now. The name of the creator is in there, too. 
+Height, width and length might make sense, but since I could create a blueprint of my entire park, which would blow up
+that field and because it's not in the info I suspect there are not. The values for excitement, intensity and nausea, and
+the costs are present as well, even though if there are stored as something like a double, they're harder to find. I'd store
+them as integers (and move the decimal separator when displaying them), so maybe we are lucky. Finally, of course there should be 
+a list of game objects with their coordinates (x, y, z, rotation and size at least).
+
+We can probably pinpoint the positions of these things by creating blueprints that are identical except for one of these components.

@@ -14,9 +14,11 @@ import javax.imageio.ImageIO;
 
 public class Step6PrintData {
 
-	private static final File FILE = new File("blueprints/identical/flower-2.png");
+	private static final File FILE = new File("blueprints/identical/flower-other-creator.png");
 
 	private static final ByteRep BYTE_REPRESENTATION = ByteRep.BINARY;
+	private static final long BYTE_LIMIT = 640;
+	private static final boolean PRETTY_PRINT = true;
 
 	private static final int[] PIXEL_POSITIONS = {16, 8, 0, 24};
 
@@ -68,9 +70,14 @@ public class Step6PrintData {
 	}
 
 	static void printGameBytes(final String[] gameBytes) {
-		System.out.println(Arrays.stream(gameBytes).collect(Collectors.joining())
-				.replaceAll("(.{" + BYTE_REPRESENTATION.getSeparateAfterBits() + "})", "$1 ")
-				.replaceAll("(.{" + BYTE_REPRESENTATION.getLineLength() + "})", "$1\n"));
+		String gameBytesString = Arrays.stream(gameBytes).limit(BYTE_LIMIT).collect(Collectors.joining());
+
+		if (PRETTY_PRINT) {
+			gameBytesString = gameBytesString
+					.replaceAll("(.{" + BYTE_REPRESENTATION.getSeparateAfterBits() + "})", "$1 ")
+					.replaceAll("(.{" + BYTE_REPRESENTATION.getLineLength() + "})", "$1\n");
+		}
+		System.out.println(gameBytesString);
 	}
 
 	enum ByteRep {

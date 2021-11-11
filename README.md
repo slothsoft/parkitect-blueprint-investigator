@@ -270,3 +270,26 @@ them as integers (and move the decimal separator when displaying them), so maybe
 a list of game objects with their coordinates (x, y, z, rotation and size at least).
 
 We can probably pinpoint the positions of these things by creating blueprints that are identical except for one of these components.
+
+The [identical](/blueprints/identical) folder contains such blueprints. The problem: Even _flower-1.png_ and _flower-2.png_, which only
+contain one identical game object, differ widely. 
+
+Which means there are some additional bytes or bits or maybe there is a 
+timestamp of some sort.
+What could that mean?
+
+- these bytes could contain a timestamp of sorts (but this would be a really long timestamp)
+- these bytes could contain random data, because they are never used 
+  (but  there are a lot of random bytes in the middle of data)
+- these bytes could contain random data, because they are not used for the blueprint in question - namely they could be for excitement, intensity and nausea
+- the format used is dynamic, e.g. key-value-pairs, and so it's the same data in another order
+
+So I created two blueprints with the same ride, so that excitement etc. would be set, but about the same amount (if not more) of
+the data differed between these two, so that leaves us with a dynamic format.
+
+Since [Step6PrintData](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step6PrintData.java) gave me the option to get a bit stream,
+I searched that stream for the blueprint name and creator name again, in UTF-8 and ASCII, and I came back empty handed.
+
+Well, not entirely empty handed - I realized I had made a mistake. The first six bytes, which I thought was P because it's 50 were wrong. Because P 
+is 50 in hexadecimal, so it's 80 decimal and 1010000. So back to the drawing board. Sadly, at this point I'm all out of ideas.
+

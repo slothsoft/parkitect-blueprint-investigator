@@ -1,6 +1,6 @@
 # Parkitect Blueprint Investigator
 
-This is an academic investigation of how the blueprints in [Parkitect](https://store.steampowered.com/app/453090/Parkitect/) are stored. 
+This is an investigation out of scientific curiosity of how blueprints in [Parkitect](https://store.steampowered.com/app/453090/Parkitect/) are stored. 
 It started because I misspelled "castle" as "castke".
 
 - [Step 1 - File Search](#step-1---file-search) 
@@ -28,12 +28,12 @@ So at this point the most probable location for the blueprint data is the PNG fi
     
 <i>See [Step2ImageChunksCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step2ImageChunksCheck.java)</i>
 
-After realizing the data would be in the PNG, I did what every programmer likes to do 
+After realizing the data is in the PNG, I did what every programmer likes to do 
 - read the [PNG spec](http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html). What 
 a treat!
 
-PNG allowes for custom chunk data, and if this chunk data is unknown to an decoder, 
-but it can safely be ignored, then an "ancillary bit" is set to true. Perfect, that's 
+PNG allows for custom chunk data. If this chunk data is unknown to a decoder, 
+it can safely be ignored. Then an "ancillary bit" is set to true. Perfect, that's 
 the chunks to put game data into.
 
 So I created a little program to read the chunks according to spec. Running [Step2ImageChunksCheck](./src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step2ImageChunksCheck.java) gets 

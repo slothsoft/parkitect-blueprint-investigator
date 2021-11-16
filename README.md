@@ -288,7 +288,8 @@ So I created two blueprints with the same ride, so that excitement etc. would be
 the data differed between these two, so that leaves us with a dynamic format.
 
 Since [Step6PrintData](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step6PrintData.java) gave me the option to get a bit stream,
-I searched that stream for the blueprint name and creator name again, in UTF-8 and ASCII, and I came back empty handed.
+I searched that stream for the blueprint name and creator name again, in UTF-8 and ASCII and I came back empty handed, even when I searched in 
+all permutations of the color components again.
 
 Well, not entirely empty handed - I realized I had made a mistake. The first six bytes, which I thought was P because it's 50 were wrong. Because P 
 is 50 in hexadecimal, so it's 80 decimal and 1010000. So back to the drawing board. Sadly, at this point I'm all out of ideas.

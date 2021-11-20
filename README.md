@@ -294,3 +294,44 @@ all permutations of the color components again.
 Well, not entirely empty handed - I realized I had made a mistake. The first six bytes, which I thought was P because it's 50 were wrong. Because P 
 is 50 in hexadecimal, so it's 80 decimal and 1010000. So back to the drawing board. Sadly, at this point I'm all out of ideas.
 
+
+# Step 7 - Outside Help
+
+<i>See [Step7UnzipSavegameCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step7UnzipSavegameCheck.java), [Step7UnzipBlueprintCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step7UnzipBlueprintCheck.java)</i>
+
+So now I requested backup from my brother, who guessed the data would be zipped in some way. At the same time, back at the 
+[Reddit question](https://www.reddit.com/r/ThemeParkitect/comments/qpa35q/how_are_blueprints_stored/), a developer confirmed
+exactly that. And added the important clue that it was a GZIP header, just like the save file. 
+
+So my first try was to search or the GZIP header for the [magic number](https://en.wikipedia.org/wiki/Gzip) `1f 8b` (or 31 and 139 in decimal), 
+which I couldn't find. So I thought the entire header part of the GZIP might be missing, but even the rest of the data did not seem like zipped data.
+
+After much screaming in my pillow, I tried it the other way around, and took a look at the definitively working data of the savegame.
+Since the data there is not extracted from pixel data, it would be much easier to analyze.
+
+[Step7UnzipSavegameCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step7UnzipSavegameCheck.java) is the result. 
+It's absolutely no problem to get Java to print:
+
+```
+{"@type":"SavegameHeader","parkDate":2073,"money":12304.6279,"guestCount":211,"parkRating":0.841940403,"timePlayed":3084.50098,"
+
+```
+
+Funnily enough, the first bytes of the savegame file are 123 and 34, not 31 and 139 as defined in the spec. I feel like
+I should know why these are different values, or should at least be able to conjure an explanation now that I know of the 
+difference. But I can't.
+
+No matter what, now that I'm absolutely sure I can read a GZIP file, I can try to brute-force my way into the blueprint file.
+
+[Step7UnzipBlueprintCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step7UnzipBlueprintCheck.java) 
+does not only check all color component orders, but tries to read a GZIP stream for each data file. After running for
+a couple of seconds, it prints:
+
+```
+[24, 0, 8, 16] / 23: {"@type":"BlueprintHeader","approximateCost":33.,"approximateCostWithoutDeco":0.,"manufacturerName":"Staubwirbel",
+
+```
+
+So **finally** it's clear that the color components are in the order "alpha, red, green, blue" und the actual GZIP data starts with byte 23. **FINALLY.**
+
+

@@ -8,6 +8,9 @@ It started because I misspelled "castle" as "castke".
 - [Step 3 - Investigating RGB Bits](#step-3---investigating-rgb-bits) 
 - [Step 4 - Finding the File Name](#step-4---finding-the-file-name) 
 - [Step 5 - Using Brute Force](#step-5---using-brute-force)  
+- [Step 6 - Cracking the Code](#step-6---cracking-the-code)  
+- [Step 7 - Outside Help](#step-7---outside-help)  
+- [Step 8 - Reader and Writer](#step-8---reader-and-writer)  
 
 
 ## Step 1 - File Search
@@ -324,7 +327,8 @@ difference. But I can't.
 No matter what, now that I'm absolutely sure I can read a GZIP file, I can try to brute-force my way into the blueprint file.
 
 [Step7UnzipBlueprintCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step7UnzipBlueprintCheck.java) 
-does not only check all color component orders, but tries to read a GZIP stream for each data file. After running for
+does not only check all color component orders, but tries to read a GZIP stream for each data file. On the first try, it
+prints nothing, but then I swap `currentBits` and `lastBits` around while building the bytes. Then after running for
 a couple of seconds, it prints:
 
 ```
@@ -333,5 +337,16 @@ a couple of seconds, it prints:
 ```
 
 So **finally** it's clear that the color components are in the order "alpha, red, green, blue" und the actual GZIP data starts with byte 23. **FINALLY.**
+
+
+
+# Step 8 - Reader and Writer
+
+Of course, now that I can read the files, I want to write them as well. And as a developer, now that I'm able to use unit tests this should 
+be a breeze.
+
+1. Write the same file to a different location - it should be identical to the original one (and we do not need to know what the first couple of bytes do)
+    - this showed that there is one file ( _water-tower-pure-png.png_ ) where the GZIP does not start at position 23
+
 
 

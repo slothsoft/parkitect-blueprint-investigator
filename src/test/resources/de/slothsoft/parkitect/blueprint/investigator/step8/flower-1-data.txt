@@ -1,0 +1,2 @@
+{"@type":"BlueprintHeader","approximateCost":33.,"approximateCostWithoutDeco":0.,"manufacturerName":"Staubwirbel","types":[],"trackedRideTypes":[],"flatRideTypes":[],"decoTypes":["FantasyGiantflower"],"shopTypes":[],"utilityTypes":[],"eins":[],"savegameVersion":54,"gameVersion":132,"gameVersionName":"Version 1.7v","name":"flower-1","date":637721231270684709,"activeMods":[],"activeDLC":[]}
+{"@type":"FantasyGiantflower","@id":"10487","pos":[45.,3.,177.],"rot":[0.,1.,0.,-4.37113883E-08],"@c":[[0.709159315,0.777291656,0.0980392173],[0.0980392322,0.383793652,0.777291656]]}

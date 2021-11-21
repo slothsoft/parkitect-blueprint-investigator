@@ -16,11 +16,11 @@ public class Step6PrintData {
 
 	private static final File FILE = new File("blueprints/identical/flower-other-creator.png");
 
-	private static final ByteRep BYTE_REPRESENTATION = ByteRep.BINARY;
-	private static final long BYTE_LIMIT = 640;
+	private static final ByteRep BYTE_REPRESENTATION = ByteRep.HEX;
+	private static final long BYTE_LIMIT = 24;
 	private static final boolean PRETTY_PRINT = true;
 
-	private static final int[] PIXEL_POSITIONS = {16, 8, 0, 24};
+	private static final int[] PIXEL_POSITIONS = {24, 0, 8, 16};
 
 	public static void main(String[] args) throws IOException {
 		final BufferedImage image = ImageIO.read(FILE);
@@ -49,7 +49,7 @@ public class Step6PrintData {
 				if (lastBits == null) {
 					lastBits = currentBits;
 				} else {
-					gameBytes[index++] = convertToHexString(Integer.parseInt(lastBits + currentBits, 2));
+					gameBytes[index++] = convertToHexString(Integer.parseInt(currentBits + lastBits, 2));
 					lastBits = null;
 				}
 			}
@@ -85,7 +85,7 @@ public class Step6PrintData {
 
 			@Override
 			protected String convertToString(int number) {
-				return String.format("%8s", Integer.toBinaryString(number)).toUpperCase().replace(' ', '0');
+				return String.format("%8s", Integer.toBinaryString(number)).replace(' ', '0');
 			}
 
 			@Override
@@ -117,7 +117,23 @@ public class Step6PrintData {
 			}
 		},
 
-		;
+		DECIMAL {
+
+			@Override
+			protected String convertToString(int number) {
+				return String.format("%3s", Integer.toString(number)).replace(' ', '0');
+			}
+
+			@Override
+			protected int getSeparateAfterBits() {
+				return 3;
+			}
+
+			@Override
+			protected int getLineLength() {
+				return ((getSeparateAfterBits() + 1) * 16);
+			}
+		},;
 
 		protected abstract String convertToString(int number);
 

@@ -342,11 +342,45 @@ So **finally** it's clear that the color components are in the order "alpha, red
 
 # Step 8 - Reader and Writer
 
+<i>See [step8](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/step8)</i>
+
 Of course, now that I can read the files, I want to write them as well. And as a developer, now that I'm able to use unit tests this should 
 be a breeze.
 
 1. Write the same file to a different location - it should be identical to the original one (and we do not need to know what the first couple of bytes do)
-    - this showed that there is one file ( _water-tower-pure-png.png_ ) where the GZIP does not start at position 23
+    - this showed that there is one file ( _water-tower-pure-png.png_ ) where the GZIP does not start at position 23 
+2. Write the data to another non-blueprint image or wipe the last bit of the color components before writing it - now we need to find out what the first 22 bytes do
 
+At this point I went back to fix [Step6PrintData](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step6PrintData.java), so it would
+print the same data as [Step7UnzipBlueprintCheck](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/Step7UnzipBlueprintCheck.java).
 
+So the data gotten from the blueprints are:
+
+```
+#0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22
+53 4D 01 65 01 00 00 71 83 29 C2 12 74 5A 82 47 AD 82 C3 AD C4 A3 62       # flower-1.png
+53 4D 01 65 01 00 00 59 7E 06 CA 8C E3 A6 4C 1A 28 51 3E 92 29 F4 90       # flower-2.png
+53 4D 01 65 01 00 00 07 FE F9 54 83 9D 0B 14 26 23 48 F7 75 29 BA 07       # flower-other-creator.png
+53 4D 01 A1 04 00 00 30 3C A4 5B 62 BD E0 01 1C E1 7C C0 72 DC 1A 5B       # cinema-1.png
+53 4D 01 A1 04 00 00 9F E3 B0 39 FC AD 03 2D CE ED 67 D5 D8 36 A0 E3       # cinema-2.png
+53 4D 01 06 17 00 00 74 D7 14 BE 3C B4 7D 06 4A 3D B5 3C 34 A8 E5 B6       # Castle Castle.png
+```
+
+Things that should / could be in there are: 
+
+- a header / magic bytes
+- the length of the GZIP
+- a checksum
+
+So the length of the GZIP... since the image is 512 * 512 pixels, and it takes two pixels to form a byte, the maximum length is 512 * 512 / 2 = 131,072. 
+This number is to high to put into a short integer (max value 32,767 or 65,535 if unsigned), so it should be an integer, which needs 4 bytes.
+
+From the `BlueprintManager` so far, typical values seem to be around 500 to 15,000, for the flower images it's the former. So the length has to have 
+a lot of 0 in its encoding, also the flower PNG should all have around the same value, the same is true for the cinema PNGs. 
+Castle should have a way higher number. All of which makes me think it's bytes 3 to 6. Using that length for the `unzip()` method of the `BlueprintManager`
+surprisingly works.
+
+Bytes 0 to 2 seem to be fix so far, so I'm guessing these are a magic number so Parkitect knows this image is a blueprint file.
+
+Only 16 bytes missing, which could be two long integers...
 

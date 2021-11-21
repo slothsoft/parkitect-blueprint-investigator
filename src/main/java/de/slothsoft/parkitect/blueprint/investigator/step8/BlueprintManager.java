@@ -8,7 +8,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -24,9 +27,23 @@ import javax.imageio.ImageIO;
 public class BlueprintManager {
 
 	private static final int[] PIXEL_POSITIONS = {24, 0, 8, 16};
-	private static final int START_BYTE = 23;
+	private static final int[] MAGIC_NUMBER = {0x53, 0x4D, 0x01};
+
+	private static final int BYTE_MAGIC_NUMBER = 0;
+	private static final int BYTE_LENGTH = BYTE_MAGIC_NUMBER + MAGIC_NUMBER.length;
+	private static final int BYTE_CHECKSUM = BYTE_LENGTH + 4;
+	static final int BYTE_GZIP_START = BYTE_CHECKSUM + 16;
 
 	private Charset charset = Charset.forName("utf8");
+	private final MessageDigest messageDigest;
+
+	public BlueprintManager() {
+		try {
+			this.messageDigest = MessageDigest.getInstance("MD5");
+		} catch (final NoSuchAlgorithmException e) {
+			throw new RuntimeException("Something went very wrong if MD5 could not be found.");
+		}
+	}
 
 	public Blueprint readFromFile(File file) throws IOException {
 		try (InputStream input = new FileInputStream(file)) {
@@ -80,7 +97,7 @@ public class BlueprintManager {
 
 		final StringBuilder result = new StringBuilder();
 
-		try (InputStream ais = new ByteArrayInputStream(gameBytes, START_BYTE, (int) length);
+		try (InputStream ais = new ByteArrayInputStream(gameBytes, BYTE_GZIP_START, (int) length);
 				InputStream gis = new GZIPInputStream(ais)) {
 			final byte[] buffer = new byte[gameBytes.length];
 			while (gis.read(buffer) != -1) {
@@ -91,11 +108,12 @@ public class BlueprintManager {
 	}
 
 	public void write(OutputStream output, Blueprint blueprint) throws IOException {
-		System.out.println("BlueprintManager.write()");
-		final byte[] gameBytes = zip(blueprint.json);
-
-//		System.out.println(Arrays.toString(gameBytes));
-		System.out.println(gameBytes.length);
+		final byte[] gzipData = zip(blueprint.json);
+		if (gzipData == null || gzipData.length == 0) {
+			throw new IOException("Could not create GZIP correctly!");
+		}
+		final byte[] gameBytes = enrichGzipData(gzipData);
+		setGameBytes(blueprint.image, gameBytes);
 		ImageIO.write(blueprint.image, "PNG", output);
 	}
 
@@ -107,12 +125,86 @@ public class BlueprintManager {
 		return bos.toByteArray();
 	}
 
+	private byte[] enrichGzipData(byte[] gzipData) throws IOException {
+		final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+		// magic number
+		for (int i = 0; i < MAGIC_NUMBER.length; i++) {
+			outputStream.write(MAGIC_NUMBER[i]);
+		}
+
+		// gzip length
+		final byte[] bytes = ByteBuffer.allocate(4).putInt(gzipData.length).array();
+		for (int i = bytes.length - 1; i >= 0; i--) {
+			// the bytes are reversed; ByteBuffer: 0, 0, 2, 29 & stream 29, 2, 0, 0
+			outputStream.write(bytes[i]);
+		}
+
+		// checksum
+		outputStream.write(createChecksum(gzipData));
+
+		// actual data
+		outputStream.write(gzipData);
+
+		return outputStream.toByteArray();
+	}
+
+	private byte[] createChecksum(byte[] gzipData) {
+		this.messageDigest.update(gzipData);
+		return this.messageDigest.digest();
+	}
+
 	private static void setGameBytes(BufferedImage image, byte[] gameBytes) {
+		int index = 0;
+		boolean lastBits = false;
+
 		for (int y = 0; y < image.getHeight(); y++) {
 			for (int x = 0; x < image.getWidth(); x++) {
-				final int pixel = image.getRGB(x, y);
+
+				// prepare the byte
+				String byteString = convertToBinaryString(gameBytes[index]);
+				byteString = lastBits ? byteString.substring(0, 4) : byteString.substring(4);
+
+				int pixel = image.getRGB(x, y);
+
+				for (int i = 0; i < PIXEL_POSITIONS.length; i++) {
+					pixel = setBit(pixel, PIXEL_POSITIONS[i], byteString.charAt(i) == '1');
+				}
+
+				final int p = pixel;
+				final String currentBits = Arrays.stream(PIXEL_POSITIONS).mapToObj(pos -> getBit(p, pos))
+						.collect(Collectors.joining());
+				if (!currentBits.equals(byteString)) {
+					throw new IllegalArgumentException(
+							"Tried to set byteString " + byteString + " but got " + currentBits);
+				}
+
+				image.setRGB(x, y, pixel);
+
+				// increment
+				if (lastBits) {
+					index++;
+					lastBits = false;
+				} else {
+					lastBits = true;
+				}
+
+				if (index >= gameBytes.length) {
+					return;
+				}
 			}
 		}
+	}
+
+	private static String convertToBinaryString(byte b) {
+		return String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
+	}
+
+	private static int setBit(int pixel, int pos, boolean value) {
+		if (value) {
+			return pixel | (1 << pos);
+		}
+		return pixel & ~(1 << pos);
 	}
 
 	public Charset getCharset() {

@@ -16,7 +16,7 @@ public class Step6PrintData {
 
 	private static final File FILE = new File("blueprints/identical/flower-other-creator.png");
 
-	private static final ByteRep BYTE_REPRESENTATION = ByteRep.HEX;
+	private static final ByteRepresentation BYTE_REPRESENTATION = ByteRepresentation.HEX;
 	private static final long BYTE_LIMIT = 24;
 	private static final boolean PRETTY_PRINT = true;
 
@@ -49,7 +49,7 @@ public class Step6PrintData {
 				if (lastBits == null) {
 					lastBits = currentBits;
 				} else {
-					gameBytes[index++] = convertToHexString(Integer.parseInt(currentBits + lastBits, 2));
+					gameBytes[index++] = convertToString(Integer.parseInt(currentBits + lastBits, 2));
 					lastBits = null;
 				}
 			}
@@ -65,7 +65,7 @@ public class Step6PrintData {
 	 * Converts integer to a string.
 	 */
 
-	private static String convertToHexString(int number) {
+	private static String convertToString(int number) {
 		return BYTE_REPRESENTATION.convertToString(number);
 	}
 
@@ -80,11 +80,11 @@ public class Step6PrintData {
 		System.out.println(gameBytesString);
 	}
 
-	enum ByteRep {
+	public enum ByteRepresentation {
 		BINARY {
 
 			@Override
-			protected String convertToString(int number) {
+			public String convertToString(int number) {
 				return String.format("%8s", Integer.toBinaryString(number)).replace(' ', '0');
 			}
 
@@ -102,7 +102,7 @@ public class Step6PrintData {
 		HEX {
 
 			@Override
-			protected String convertToString(int number) {
+			public String convertToString(int number) {
 				return String.format("%2s", Integer.toHexString(number)).toUpperCase().replace(' ', '0');
 			}
 
@@ -120,7 +120,7 @@ public class Step6PrintData {
 		DECIMAL {
 
 			@Override
-			protected String convertToString(int number) {
+			public String convertToString(int number) {
 				return String.format("%3s", Integer.toString(number)).replace(' ', '0');
 			}
 
@@ -135,7 +135,11 @@ public class Step6PrintData {
 			}
 		},;
 
-		protected abstract String convertToString(int number);
+		public String convertToString(byte number) {
+			return convertToString(number & 0xFF);
+		}
+
+		public abstract String convertToString(int number);
 
 		protected abstract int getSeparateAfterBits();
 

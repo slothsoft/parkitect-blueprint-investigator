@@ -60,7 +60,7 @@ public class BlueprintManagerTest {
 
 		Assertions.assertNotNull(copiedBlueprint);
 		Assertions.assertNotNull(copiedBlueprint.image);
-		Assertions.assertEquals(blueprint.json, copiedBlueprint.json);
+		Assertions.assertEquals(blueprint.json.trim(), copiedBlueprint.json.trim());
 	}
 
 	private static Stream<Arguments> provideFileForWriteSameData() {
@@ -71,9 +71,10 @@ public class BlueprintManagerTest {
 	}
 
 	private File writeBlueprintToTemp(Blueprint blueprint) throws IOException {
-		final File result = new File(
-				"target/" + this.testInfo.getTestMethod() + "/" + UUID.randomUUID().toString() + ".png");
+		final File result = new File("target/" + this.testInfo.getTestMethod().get().getName() + "/"
+				+ UUID.randomUUID().toString() + ".png");
 		result.getParentFile().mkdir();
+
 		try (OutputStream output = new FileOutputStream(result)) {
 			this.manager.write(output, blueprint);
 		}
@@ -100,7 +101,7 @@ public class BlueprintManagerTest {
 
 		Assertions.assertNotNull(copiedBlueprint);
 		Assertions.assertNotNull(copiedBlueprint.image);
-		Assertions.assertEquals(blueprint.json, copiedBlueprint.json);
+		Assertions.assertEquals(blueprint.json.trim(), copiedBlueprint.json.trim());
 	}
 
 	@ParameterizedTest
@@ -108,14 +109,18 @@ public class BlueprintManagerTest {
 	void testWriteSameDataOtherImage(File originalFile) throws IOException {
 		final Blueprint blueprint = this.manager.readFromFile(originalFile);
 
-		final File copiedFile = writeBlueprintToTemp(
-				new Blueprint(ImageIO.read(new File("no-blueprint/content-manager-umlauts.png")), blueprint.json));
+		final File copiedFile = writeBlueprintToTemp(new Blueprint(ImageIO.read(FILE_FLOWER_1), blueprint.json));
 		Assertions.assertTrue(copiedFile.exists(), "File should exist: " + copiedFile);
 
 		final Blueprint copiedBlueprint = this.manager.readFromFile(copiedFile);
 
 		Assertions.assertNotNull(copiedBlueprint);
 		Assertions.assertNotNull(copiedBlueprint.image);
-		Assertions.assertEquals(blueprint.json, copiedBlueprint.json);
+		Assertions.assertEquals(blueprint.json.trim(), copiedBlueprint.json.trim());
+	}
+
+	@Test
+	void testByteGzipStart() throws IOException {
+		Assertions.assertEquals(23, BlueprintManager.BYTE_GZIP_START);
 	}
 }

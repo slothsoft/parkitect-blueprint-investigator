@@ -22,6 +22,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class BlueprintManagerTest {
 
 	private static final File FILE_FLOWER_1 = new File("blueprints/identical/flower-1.png");
+	private static final File FILE_CINEMA_1 = new File("blueprints/identical/cinema-1.png");
 
 	private TestInfo testInfo;
 
@@ -32,13 +33,14 @@ public class BlueprintManagerTest {
 		this.testInfo = testInfo;
 	}
 
-	@Test
-	void testRead() throws IOException {
-		final Blueprint blueprint = this.manager.readFromFile(FILE_FLOWER_1);
+	@ParameterizedTest
+	@MethodSource("provideFilesForRead")
+	void testRead(File file, String expectedData) throws IOException {
+		final Blueprint blueprint = this.manager.readFromFile(file);
 
 		Assertions.assertNotNull(blueprint);
 		Assertions.assertNotNull(blueprint.image);
-		Assertions.assertEquals(readFileAsString("flower-1-data.txt"), blueprint.json.trim());
+		Assertions.assertEquals(readFileAsString(expectedData), blueprint.json.trim());
 	}
 
 	private static String readFileAsString(String fileName) {
@@ -46,6 +48,16 @@ public class BlueprintManagerTest {
 			scanner.useDelimiter("\\A");
 			return scanner.hasNext() ? scanner.next().trim() : "";
 		}
+	}
+
+	private static Stream<Arguments> provideFilesForRead() {
+		return Stream.of(
+
+				Arguments.of(FILE_FLOWER_1, "flower-1-data.txt"),
+
+				Arguments.of(FILE_CINEMA_1, "cinema-1-data.txt")
+
+		);
 	}
 
 	@ParameterizedTest

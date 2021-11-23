@@ -145,6 +145,7 @@ public class BlueprintManager {
 
 		// actual data
 		outputStream.write(gzipData);
+		outputStream.flush();
 
 		return outputStream.toByteArray();
 	}
@@ -162,23 +163,19 @@ public class BlueprintManager {
 			for (int x = 0; x < image.getWidth(); x++) {
 
 				// prepare the byte
-				String byteString = convertToBinaryString(gameBytes[index]);
-				byteString = lastBits ? byteString.substring(0, 4) : byteString.substring(4);
+				String byteString;
+				if (index < gameBytes.length) {
+					byteString = convertToBinaryString(gameBytes[index]);
+					byteString = lastBits ? byteString.substring(0, 4) : byteString.substring(4);
+				} else {
+					byteString = "0000";
+				}
 
+				// flip the bits of the color components
 				int pixel = image.getRGB(x, y);
-
 				for (int i = 0; i < PIXEL_POSITIONS.length; i++) {
 					pixel = setBit(pixel, PIXEL_POSITIONS[i], byteString.charAt(i) == '1');
 				}
-
-				final int p = pixel;
-				final String currentBits = Arrays.stream(PIXEL_POSITIONS).mapToObj(pos -> getBit(p, pos))
-						.collect(Collectors.joining());
-				if (!currentBits.equals(byteString)) {
-					throw new IllegalArgumentException(
-							"Tried to set byteString " + byteString + " but got " + currentBits);
-				}
-
 				image.setRGB(x, y, pixel);
 
 				// increment
@@ -187,10 +184,6 @@ public class BlueprintManager {
 					lastBits = false;
 				} else {
 					lastBits = true;
-				}
-
-				if (index >= gameBytes.length) {
-					return;
 				}
 			}
 		}

@@ -387,4 +387,8 @@ Only 16 bytes missing, which could be two long integers... or a checksum.
 Let's talk about checksums: the widely used are MD5 and SHA-X. And while a MD5 hash has 16 bytes, even SHA-1 has more than that, 20. SHA-256 has even more, 32 and SHA-512 has 64 bytes.
 So the only one of those that could fit is MD5.
 
-A quick test shows: yes, the checksum is a MD5 hash of the GZIP data. That 
+A quick test shows: yes, the checksum is a MD5 hash of the GZIP data.
+
+So now the [BlueprintManager](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/step8/BlueprintManager) can write many 
+of the blueprints, but not all, as the test ([BlueprintManagerTest](/src/test/java/de/slothsoft/parkitect/blueprint/investigator/step8/BlueprintManagerTest)) shows.
+

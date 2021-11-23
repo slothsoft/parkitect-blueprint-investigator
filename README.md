@@ -389,6 +389,6 @@ So the only one of those that could fit is MD5.
 
 A quick test shows: yes, the checksum is a MD5 hash of the GZIP data.
 
-So now the [BlueprintManager](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/step8/BlueprintManager) can write many 
-of the blueprints, but not all, as the test ([BlueprintManagerTest](/src/test/java/de/slothsoft/parkitect/blueprint/investigator/step8/BlueprintManagerTest)) shows.
+So now the [BlueprintManager](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/step8/BlueprintManager.java) can write many 
+of the blueprints, but not all, as the test ([BlueprintManagerTest](/src/test/java/de/slothsoft/parkitect/blueprint/investigator/step8/BlueprintManagerTest.java)) shows.
 

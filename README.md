@@ -375,9 +375,9 @@ Things that should / could be in there are:
 So the length of the GZIP... since the image is 512 * 512 pixels, and it takes two pixels to form a byte, the maximum length is 512 * 512 / 2 = 131,072. 
 This number is to high to put into a short integer (max value 32,767 or 65,535 if unsigned), so it should be an integer, which needs 4 bytes.
 
-From the `BlueprintManager` so far, typical values seem to be around 500 to 15,000, for the flower images it's the former. So the length has to have 
+From the `ImageDataManager` so far, typical values seem to be around 500 to 15,000, for the flower images it's the former. So the length has to have 
 a lot of 0 in its encoding, also the flower PNG should all have around the same value, the same is true for the cinema PNGs. 
-Castle should have a way higher number. All of which makes me think it's bytes 3 to 6. Using that length for the `unzip()` method of the `BlueprintManager`
+Castle should have a way higher number. All of which makes me think it's bytes 3 to 6. Using that length for the `unzip()` method of the `ImageDataManager`
 surprisingly works.
 
 Bytes 0 to 2 seem to be fix so far, so I'm guessing these are a magic number so Parkitect knows this image is a blueprint file.
@@ -389,6 +389,6 @@ So the only one of those that could fit is MD5.
 
 A quick test shows: yes, the checksum is a MD5 hash of the GZIP data.
 
-So now the [BlueprintManager](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/step8/BlueprintManager.java) can write many 
-of the blueprints, but not all, as the test ([BlueprintManagerTest](/src/test/java/de/slothsoft/parkitect/blueprint/investigator/step8/BlueprintManagerTest.java)) shows.
+So now the [ImageDataManager](/src/main/java/de/slothsoft/parkitect/blueprint/investigator/step8/ImageDataManager.java) can write all 
+of the blueprints, as the test ([ImageDataManagerTest](/src/test/java/de/slothsoft/parkitect/blueprint/investigator/step8/ImageDataManagerTest.java)) shows.
 

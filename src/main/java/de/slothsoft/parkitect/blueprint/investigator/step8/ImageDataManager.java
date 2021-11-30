@@ -14,6 +14,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -21,10 +22,10 @@ import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
 
 /**
- * Class to read and write blueprints.
+ * Class to read and write blueprints to the data stored in the image.
  */
 
-public class BlueprintManager {
+public class ImageDataManager {
 
 	private static final int[] PIXEL_POSITIONS = {24, 0, 8, 16};
 	private static final int[] MAGIC_NUMBER = {0x53, 0x4D, 0x01};
@@ -37,7 +38,7 @@ public class BlueprintManager {
 	private Charset charset = Charset.forName("utf8");
 	private final MessageDigest messageDigest;
 
-	public BlueprintManager() {
+	public ImageDataManager() {
 		try {
 			this.messageDigest = MessageDigest.getInstance("MD5");
 		} catch (final NoSuchAlgorithmException e) {
@@ -45,13 +46,13 @@ public class BlueprintManager {
 		}
 	}
 
-	public Blueprint readFromFile(File file) throws IOException {
+	public ImageData readFromFile(File file) throws IOException {
 		try (InputStream input = new FileInputStream(file)) {
 			return read(input);
 		}
 	}
 
-	public Blueprint read(InputStream input) throws IOException {
+	public ImageData read(InputStream input) throws IOException {
 		final BufferedImage image = ImageIO.read(input);
 
 		if (image == null) {
@@ -59,7 +60,7 @@ public class BlueprintManager {
 		}
 		final byte[] gameBytes = fetchGameBytes(image);
 		final String json = unzip(gameBytes);
-		return new Blueprint(image, json);
+		return new ImageData(image, json);
 	}
 
 	private static byte[] fetchGameBytes(BufferedImage image) {
@@ -95,19 +96,15 @@ public class BlueprintManager {
 		final long length = (((long) 0xFF & gameBytes[6]) << 24) | ((0xFF & gameBytes[5]) << 16)
 				| ((0xFF & gameBytes[4]) << 8) | (0xFF & gameBytes[3]);
 
-		final StringBuilder result = new StringBuilder();
-
 		try (InputStream ais = new ByteArrayInputStream(gameBytes, BYTE_GZIP_START, (int) length);
-				InputStream gis = new GZIPInputStream(ais)) {
-			final byte[] buffer = new byte[gameBytes.length];
-			while (gis.read(buffer) != -1) {
-				result.append(new String(buffer, this.charset));
-			}
-			return result.toString();
+				InputStream gis = new GZIPInputStream(ais);
+				Scanner scanner = new Scanner(gis)) {
+			scanner.useDelimiter("\\A");
+			return scanner.hasNext() ? scanner.next() : "";
 		}
 	}
 
-	public void write(OutputStream output, Blueprint blueprint) throws IOException {
+	public void write(OutputStream output, ImageData blueprint) throws IOException {
 		final byte[] gzipData = zip(blueprint.json);
 		if (gzipData == null || gzipData.length == 0) {
 			throw new IOException("Could not create GZIP correctly!");
@@ -204,7 +201,7 @@ public class BlueprintManager {
 		return this.charset;
 	}
 
-	public BlueprintManager charset(Charset newCharset) {
+	public ImageDataManager charset(Charset newCharset) {
 		setCharset(newCharset);
 		return this;
 	}
